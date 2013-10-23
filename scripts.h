@@ -5,14 +5,14 @@
 #include "account.h"
 #include "connection.h"
 
-typedef void CB(const char* line, PurpleConnection *gc, PurpleBuddy* buddy);
+typedef void CB(const char *line, PurpleConnection *gc, PurpleBuddy *buddy);
 
 int exec_process(
 	const char *cmd,
 	const char *cmd_arg,
 	CB *callback,
 	PurpleConnection *gc,
-	PurpleBuddy* buddy
+	PurpleBuddy *buddy
 );
 
 #endif /* _SCRIPTS_H_ */

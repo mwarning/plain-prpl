@@ -16,7 +16,7 @@
 #include "extra.h"
 
 
-int str_to_af(const char* str)
+int str_to_af(const char *str)
 {
 	if(strcmp(str, "ipv4") == 0) {
 		return AF_INET;
@@ -27,7 +27,7 @@ int str_to_af(const char* str)
 	}
 }
 
-const char* af_to_str(int af)
+const char *af_to_str(int af)
 {
 	if(af == AF_INET) {
 		return "ipv4";
@@ -39,18 +39,18 @@ const char* af_to_str(int af)
 }
 
 /* Compare two ip addresses */
-int addr_equal( const IP *addr1, const IP *addr2 )
+int addr_equal(const IP *addr1, const IP *addr2)
 {
-	if( addr1->ss_family != addr2->ss_family ) {
+	if(addr1->ss_family != addr2->ss_family) {
 		return 0;
-	} else if( addr1->ss_family == AF_INET ) {
+	} else if(addr1->ss_family == AF_INET) {
 		const IP4 *a1 = (IP4 *)addr1;
 		const IP4 *a2 = (IP4 *)addr2;
-		return (memcmp( &a1->sin_addr, &a2->sin_addr, 4 ) == 0) && (a1->sin_port == a2->sin_port);
-	} else if( addr1->ss_family == AF_INET6 ) {
+		return (memcmp(&a1->sin_addr, &a2->sin_addr, 4) == 0) && (a1->sin_port == a2->sin_port);
+	} else if(addr1->ss_family == AF_INET6) {
 		const IP6 *a1 = (IP6 *)addr1;
 		const IP6 *a2 = (IP6 *)addr2;
-		return (memcmp( &a1->sin6_addr, &a2->sin6_addr, 16 ) == 0) && (a1->sin6_port == a2->sin6_port);
+		return (memcmp(&a1->sin6_addr, &a2->sin6_addr, 16) == 0) && (a1->sin6_port == a2->sin6_port);
 	} else {
 		return 0;
 	}
@@ -60,35 +60,35 @@ int addr_equal( const IP *addr1, const IP *addr2 )
 * Resolve an IP address.
 * The port must be specified separately.
 */
-int addr_parse( IP *addr, const char *addr_str, const char *port_str, int af )
+int addr_parse(IP *addr, const char *addr_str, const char *port_str, int af)
 {
 	struct addrinfo hints;
 	struct addrinfo *info = NULL;
 	struct addrinfo *p = NULL;
 
-	memset( &hints, '\0', sizeof(struct addrinfo) );
+	memset(&hints, '\0', sizeof(struct addrinfo));
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_family = af;
 
-	if( getaddrinfo( addr_str, port_str, &hints, &info ) != 0 ) {
+	if(getaddrinfo(addr_str, port_str, &hints, &info) != 0) {
 		return ADDR_PARSE_CANNOT_RESOLVE;
 	}
 
 	p = info;
-	while( p != NULL ) {
-		if( p->ai_family == AF_INET6 ) {
-			memcpy( addr, p->ai_addr, sizeof(IP6) );
-			freeaddrinfo( info );
+	while(p != NULL) {
+		if(p->ai_family == AF_INET6) {
+			memcpy(addr, p->ai_addr, sizeof(IP6));
+			freeaddrinfo(info);
 			return ADDR_PARSE_SUCCESS;
 		}
-		if( p->ai_family == AF_INET ) {
-			memcpy( addr, p->ai_addr, sizeof(IP4) );
-			freeaddrinfo( info );
+		if(p->ai_family == AF_INET) {
+			memcpy(addr, p->ai_addr, sizeof(IP4));
+			freeaddrinfo(info);
 			return ADDR_PARSE_SUCCESS;
 		}
 	}
 
-	freeaddrinfo( info );
+	freeaddrinfo(info);
 	return ADDR_PARSE_NO_ADDR_FOUND;
 }
 
@@ -103,7 +103,7 @@ int addr_parse( IP *addr, const char *addr_str, const char *port_str, int af )
 * "[<address>]"
 * "[<address>]:<port>"
 */
-int addr_parse_full( IP *addr, const char *full_addr_str, const char* default_port, int af )
+int addr_parse_full(IP *addr, const char *full_addr_str, const char *default_port, int af)
 {
 	char addr_buf[256];
 
@@ -113,24 +113,24 @@ int addr_parse_full( IP *addr, const char *full_addr_str, const char* default_po
 	const char *port_str = NULL;
 	int len;
 
-	len = strlen( full_addr_str );
-	if( len >= (sizeof(addr_buf) - 1) ) {
+	len = strlen(full_addr_str);
+	if(len >= (sizeof(addr_buf) - 1)) {
 		/* address too long */
 		return ADDR_PARSE_INVALID_FORMAT;
 	} else {
 		addr_beg = addr_buf;
 	}
 
-	memset( addr_buf, '\0', sizeof(addr_buf) );
-	memcpy( addr_buf, full_addr_str, len );
+	memset(addr_buf, '\0', sizeof(addr_buf));
+	memcpy(addr_buf, full_addr_str, len);
 
-	last_colon = strrchr( addr_buf, ':' );
+	last_colon = strrchr(addr_buf, ':');
 
-	if( addr_beg[0] == '[' ) {
+	if(addr_beg[0] == '[') {
 		/* [<addr>] or [<addr>]:<port> */
-		addr_tmp = strrchr( addr_beg, ']' );
+		addr_tmp = strrchr(addr_beg, ']');
 
-		if( addr_tmp == NULL ) {
+		if(addr_tmp == NULL) {
 			/* broken format */
 			return ADDR_PARSE_INVALID_FORMAT;
 		}
@@ -138,18 +138,18 @@ int addr_parse_full( IP *addr, const char *full_addr_str, const char* default_po
 		*addr_tmp = '\0';
 		addr_str = addr_beg + 1;
 
-		if( *(addr_tmp+1) == '\0' ) {
+		if(*(addr_tmp+1) == '\0') {
 			port_str = default_port;
-		} else if( *(addr_tmp+1) == ':' ) {
+		} else if(*(addr_tmp+1) == ':') {
 			port_str = addr_tmp + 2;
 		} else {
 			/* port expected */
 			return ADDR_PARSE_INVALID_FORMAT;
 		}
-	} else if( last_colon && last_colon == strchr( addr_buf, ':' ) ) {
+	} else if(last_colon && last_colon == strchr(addr_buf, ':')) {
 		/* <non-ipv6-addr>:<port> */
 		addr_tmp = last_colon;
-		if( addr_tmp ) {
+		if(addr_tmp) {
 			*addr_tmp = '\0';
 			addr_str = addr_buf;
 			port_str = addr_tmp+1;
@@ -163,27 +163,27 @@ int addr_parse_full( IP *addr, const char *full_addr_str, const char* default_po
 		port_str = default_port;
 	}
 
-	return addr_parse( addr, addr_str, port_str, af );
+	return addr_parse(addr, addr_str, port_str, af);
 }
 
-char* str_addr( const IP *addr, char *addrbuf )
+char *str_addr(const IP *addr, char *addrbuf)
 {
 	char buf[INET6_ADDRSTRLEN+1];
 	unsigned short port;
 
-	switch( addr->ss_family ) {
+	switch(addr->ss_family) {
 	case AF_INET6:
-		port = ntohs( ((IP6 *)addr)->sin6_port );
-		inet_ntop( AF_INET6, &((IP6 *)addr)->sin6_addr, buf, sizeof(buf) );
-		sprintf( addrbuf, "[%s]:%hu", buf, port );
+		port = ntohs(((IP6 *)addr)->sin6_port);
+		inet_ntop(AF_INET6, &((IP6 *)addr)->sin6_addr, buf, sizeof(buf));
+		sprintf(addrbuf, "[%s]:%hu", buf, port);
 		break;
 	case AF_INET:
-		port = ntohs( ((IP4 *)addr)->sin_port );
-		inet_ntop( AF_INET, &((IP4 *)addr)->sin_addr, buf, sizeof(buf) );
-		sprintf( addrbuf, "%s:%hu", buf, port );
+		port = ntohs(((IP4 *)addr)->sin_port);
+		inet_ntop(AF_INET, &((IP4 *)addr)->sin_addr, buf, sizeof(buf));
+		sprintf(addrbuf, "%s:%hu", buf, port);
 		break;
 	default:
-		sprintf( addrbuf, "<invalid address>" );
+		sprintf(addrbuf, "<invalid address>");
 	}
 
 	return addrbuf;
@@ -207,9 +207,9 @@ int net_set_nonblocking(int fd)
 
 int net_bind(
 	const char *name,
-	const char* addr,
-	const char* port,
-	const char* ifce,
+	const char *addr,
+	const char *port,
+	const char *ifce,
 	int protocol, int af
 )
 {
@@ -218,61 +218,61 @@ int net_bind(
 	int val;
 	IP sockaddr;
 
-	if( af != AF_INET && af != AF_INET6 ) {
-		fprintf( stderr, "plainprpl: Unknown address family value." );
+	if(af != AF_INET && af != AF_INET6) {
+		fprintf(stderr, "plainprpl: Unknown address family value.");
 		return -1;
 	}
 
-	if( addr_parse( &sockaddr, addr, port, af ) != 0 ) {
-		fprintf( stderr, "plainprpl: Failed to parse ip address '%s' and port '%s'.", addr, port );
+	if(addr_parse(&sockaddr, addr, port, af) != 0) {
+		fprintf(stderr, "plainprpl: Failed to parse ip address '%s' and port '%s'.", addr, port);
 		return -1;
 	}
 
-	if( protocol == IPPROTO_TCP ) {
-		sock = socket( sockaddr.ss_family, SOCK_STREAM, IPPROTO_TCP );
-	} else if( protocol == IPPROTO_UDP ) {
-		sock = socket( sockaddr.ss_family, SOCK_DGRAM, IPPROTO_UDP );
+	if(protocol == IPPROTO_TCP) {
+		sock = socket(sockaddr.ss_family, SOCK_STREAM, IPPROTO_TCP);
+	} else if(protocol == IPPROTO_UDP) {
+		sock = socket(sockaddr.ss_family, SOCK_DGRAM, IPPROTO_UDP);
 	} else {
 		sock = -1;
 	}
 
-	if( sock < 0 ) {
-		fprintf( stderr, "plainprpl: Failed to create socket: %s", strerror( errno ) );
+	if(sock < 0) {
+		fprintf(stderr, "plainprpl: Failed to create socket: %s", strerror(errno));
 		return -1;
 	}
 
 	val = 1;
-	if ( setsockopt( sock, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val) ) < 0 ) {
-		fprintf( stderr, "plainprpl: Failed to set socket option SO_REUSEADDR: %s", strerror( errno ));
+	if(setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val)) < 0) {
+		fprintf(stderr, "plainprpl: Failed to set socket option SO_REUSEADDR: %s", strerror(errno));
 		return -1;
 	}
 
-	if( ifce && setsockopt( sock, SOL_SOCKET, SO_BINDTODEVICE, ifce, strlen( ifce ) ) ) {
-		fprintf( stderr, "plainprpl: Unable to bind to device '%s': %s", ifce, strerror( errno ) );
+	if(ifce && setsockopt(sock, SOL_SOCKET, SO_BINDTODEVICE, ifce, strlen(ifce))) {
+		fprintf(stderr, "plainprpl: Unable to bind to device '%s': %s", ifce, strerror(errno));
 		return -1;
 	}
 
-	if( af == AF_INET6 ) {
+	if(af == AF_INET6) {
 		val = 1;
-		if( setsockopt( sock, IPPROTO_IPV6, IPV6_V6ONLY, &val, sizeof(val) ) < 0 ) {
-			fprintf( stderr, "plainprpl: Failed to set socket option IPV6_V6ONLY: %s", strerror( errno ));
+		if(setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY, &val, sizeof(val)) < 0) {
+			fprintf(stderr, "plainprpl: Failed to set socket option IPV6_V6ONLY: %s", strerror(errno));
 			return -1;
 		}
 	}
 
-	if( bind( sock, (struct sockaddr*) &sockaddr, sizeof(IP) ) < 0 ) {
-		fprintf( stderr, "plainprpl: Failed to bind socket to address: '%s'", strerror( errno ) );
-		close( sock );
+	if(bind(sock, (struct sockaddr *) &sockaddr, sizeof(IP)) < 0) {
+		fprintf(stderr, "plainprpl: Failed to bind socket to address: '%s'", strerror(errno));
+		close(sock);
 		return -1;
 	}
 
-	if( net_set_nonblocking( sock ) < 0 ) {
-		fprintf( stderr, "plainprpl: Failed to make socket nonblocking: '%s'", strerror( errno ) );
+	if(net_set_nonblocking(sock) < 0) {
+		fprintf(stderr, "plainprpl: Failed to make socket nonblocking: '%s'", strerror(errno));
 		return -1;
 	}
 
-	if( protocol == IPPROTO_TCP && listen( sock, 5 ) < 0 ) {
-		fprintf(stderr, "plainprpl: Failed to listen on socket: '%s'", strerror( errno ) );
+	if(protocol == IPPROTO_TCP && listen(sock, 5) < 0) {
+		fprintf(stderr, "plainprpl: Failed to listen on socket: '%s'", strerror(errno));
 		return -1;
 	}
 

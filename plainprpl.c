@@ -36,7 +36,7 @@
 #define PLAIN_VERSION "0.1"
 #define PLAIN_WEBSITE "http://foo"
 #define PLAIN_AUTHOR NULL
-#define LINKPRPL_ID "prpl-plain"
+#define PLAINPRPL_ID "prpl-plain"
 #define PLAIN_STATUS_ONLINE "plain_online"
 #define PLAIN_STATUS_OFFLINE "plain_offline"
 #define PLAIN_PING_TIME (5*60)
@@ -70,7 +70,7 @@ typedef struct {
 	guint receive_timer; /* Call plain_receive() in intervals */
 	time_t time_next; /* Next time to try to resolve/ping buddies */
 	GSList *all_buddies; /* List of all buddies of this account */
-	int block_unknown; //prevent multiple unknown add buddy dialogs
+	int block_unknown; /* Prevent multiple unknown add buddy dialogs */
 } plain_plugin_state;
 
 
@@ -92,7 +92,7 @@ void free_plugin_data(plain_plugin_state *pstate)
 static void plainprpl_add_buddy_by_contact_request(PurpleConnection *gc, const char *addr_str, const char *message);
 
 
-plain_buddy_state * add_buddy_sdata(PurpleBuddy *buddy, plain_plugin_state* pstate )
+plain_buddy_state *add_buddy_sdata(PurpleBuddy *buddy, plain_plugin_state *pstate)
 {
 	plain_buddy_state *bstate;
 
@@ -107,7 +107,7 @@ plain_buddy_state * add_buddy_sdata(PurpleBuddy *buddy, plain_plugin_state* psta
 }
 
 /* Receive message and identify buddy */
-PurpleBuddy* receive_msg(plain_plugin_state *pstate, IP *addr_ret, char buf[], int *buf_length)
+PurpleBuddy *receive_msg(plain_plugin_state *pstate, IP *addr_ret, char buf[], int *buf_length)
 {
 	char addrbuf[FULL_ADDSTRLEN+1];
 	PurpleBuddy *buddy;
@@ -118,8 +118,8 @@ PurpleBuddy* receive_msg(plain_plugin_state *pstate, IP *addr_ret, char buf[], i
 	int n;
 
 	addrlen = sizeof(IP);
-	n = recvfrom( pstate->sockfd, buf, *buf_length, 0, (struct sockaddr *) &addr, &addrlen );
-	if( n < 0 || n > *buf_length ) {
+	n = recvfrom(pstate->sockfd, buf, *buf_length, 0, (struct sockaddr *) &addr, &addrlen);
+	if(n < 0 || n > *buf_length) {
 		buf[0] = '\0';
 		*buf_length = 0;
 		return NULL;
@@ -138,7 +138,7 @@ PurpleBuddy* receive_msg(plain_plugin_state *pstate, IP *addr_ret, char buf[], i
 
 		//printf("buddy: %s, addr: %s (addr_str: %s)\n", bstate->name, str_addr(&bstate->addr, addrbuf), addr_str);
 
-		if(addr_equal(&bstate->addr, &addr )) {
+		if(addr_equal(&bstate->addr, &addr)) {
 			/* Found buddy by address */
 			return buddy;
 		}
@@ -151,7 +151,7 @@ PurpleBuddy* receive_msg(plain_plugin_state *pstate, IP *addr_ret, char buf[], i
 }
 
 /* Send a message to a buddy */
-int send_msg( plain_plugin_state *plugin_data, plain_buddy_state *buddy_data, const char *msg_str)
+int send_msg(plain_plugin_state *plugin_data, plain_buddy_state *buddy_data, const char *msg_str)
 {
 	char addrbuf[FULL_ADDSTRLEN+1];
 	int rc;
@@ -162,17 +162,17 @@ int send_msg( plain_plugin_state *plugin_data, plain_buddy_state *buddy_data, co
 	int str_len = msg_len;
 	const char *str_ptr = msg_str;
 	/*
-		purple_debug_info("plainprpl", "Try to send %d Bytes to: %s\n", msg_len, str_addr(addr, addrbuf) );
-		rc = sendto( sockfd, msg_str, msg_len, 0, (struct sockaddr *)addr, sizeof(IP) );
+		purple_debug_info("plainprpl", "Try to send %d Bytes to: %s\n", msg_len, str_addr(addr, addrbuf));
+		rc = sendto( sockfd, msg_str, msg_len, 0, (struct sockaddr *)addr, sizeof(IP));
 		printf("rc of sendto: %d\n", rc);
 	*/
-	purple_debug_info("plainprpl", "Try to send %d Bytes to: %s\n", msg_len, str_addr(addr, addrbuf) );
+	purple_debug_info("plainprpl", "Try to send %d Bytes to: %s\n", msg_len, str_addr(addr, addrbuf));
 	while(str_len > 0) {
 		int size = (str_len < MAX_MESSAGE_SIZE) ? str_len : MAX_MESSAGE_SIZE;
 
-		purple_debug_info("plainprpl", "Send (%d Bytes): %.*s\n", size, size, str_ptr );
-		rc = sendto( sockfd, str_ptr, size, 0, (struct sockaddr *)addr, sizeof(IP) );
-		if( rc < 0 ) {
+		purple_debug_info("plainprpl", "Send (%d Bytes): %.*s\n", size, size, str_ptr);
+		rc = sendto(sockfd, str_ptr, size, 0, (struct sockaddr *)addr, sizeof(IP));
+		if(rc < 0) {
 			purple_debug_info("plainprpl", "Failed to send message: %s (%d)\n", strerror(errno), rc);
 			return -1;
 		}
@@ -183,7 +183,7 @@ int send_msg( plain_plugin_state *plugin_data, plain_buddy_state *buddy_data, co
 	return 1;
 }
 
-void on_lookup_handle(const char* line, PurpleConnection *gc, PurpleBuddy* buddy)
+void on_lookup_handle(const char *line, PurpleConnection *gc, PurpleBuddy *buddy)
 {
 	purple_debug_info("plainprpl", "on_lookup_handle: %s\n", line);
 
@@ -193,11 +193,11 @@ void on_lookup_handle(const char* line, PurpleConnection *gc, PurpleBuddy* buddy
 	pstate = purple_connection_get_protocol_data(gc);
 	bstate = purple_buddy_get_protocol_data(buddy);
 
-	addr_parse( &bstate->addr, line, PLAIN_DEFAULT_PORT_STR, pstate->sockaf );
+	addr_parse(&bstate->addr, line, PLAIN_DEFAULT_PORT_STR, pstate->sockaf);
 }
 
 /* Ping buddies a ping every 5 minutes if there is no traffic */
-void ping_buddies( PurpleConnection *gc, time_t now)
+void ping_buddies(PurpleConnection *gc, time_t now)
 {
 	char addrbuf[FULL_ADDSTRLEN+1];
 	PurpleBuddy *buddy;
@@ -210,7 +210,7 @@ void ping_buddies( PurpleConnection *gc, time_t now)
 	account = purple_connection_get_account(gc);
 	pstate = purple_connection_get_protocol_data(gc);
 
-	if( pstate->time_next > now ) {
+	if(pstate->time_next > now) {
 		return;
 	}
 
@@ -235,23 +235,23 @@ void ping_buddies( PurpleConnection *gc, time_t now)
 		time_t state_next = bstate->state_next;
 
 		if(state == BUDDY_STATE_RESOLVE) {
-			const char* addr_str = purple_blist_node_get_string(PURPLE_BLIST_NODE(buddy), "addr_str");
+			const char *addr_str = purple_blist_node_get_string(PURPLE_BLIST_NODE(buddy), "addr_str");
 			if(exec_process(on_lookup, addr_str, on_lookup_handle, gc, buddy) == 0) {
 				/* Script was called - wait for answer some other time */
-				purple_debug_info("plainprpl", "Lookup by SCRIPT succeded. Start to ping %s\n", str_addr( &bstate->addr, addrbuf));
+				purple_debug_info("plainprpl", "Lookup by SCRIPT succeded. Start to ping %s\n", str_addr(&bstate->addr, addrbuf));
 				state = BUDDY_STATE_PING;
 				state_step = 1;
 				state_next = now + 1;
-			} else if( addr_parse_full( &bstate->addr, addr_str, PLAIN_DEFAULT_PORT_STR, pstate->sockaf ) == 0 ) {
-				purple_debug_info("plainprpl", "Lookup by DNS succeded (%s). Start to ping %s\n", addr_str, str_addr( &bstate->addr, addrbuf));
+			} else if(addr_parse_full(&bstate->addr, addr_str, PLAIN_DEFAULT_PORT_STR, pstate->sockaf) == 0) {
+				purple_debug_info("plainprpl", "Lookup by DNS succeded (%s). Start to ping %s\n", addr_str, str_addr(&bstate->addr, addrbuf));
 				//switch to ping state
 				state = BUDDY_STATE_PING;
 				state_step = 1;
 				state_next = now + 1;
 			} else {
-				if( state_step == 0 ) {
+				if(state_step == 0) {
 					state_step = 4;
-				} else if( state_step < (5*60) ) {
+				} else if(state_step < (5*60)) {
 					state_step *= 2;
 				}
 
@@ -261,11 +261,11 @@ void ping_buddies( PurpleConnection *gc, time_t now)
 		} else if(state == BUDDY_STATE_PING) {
 			//send ping
 			if(bstate->time_recv < (now - (5*60))) {
-				if( state_step < (5*60) ) {
+				if(state_step < (5*60)) {
 					state_step *= 2;
 					state_next = now + state_step;
 
-					send_msg( pstate, bstate, "/ping" );
+					send_msg(pstate, bstate, "/ping");
 
 					/* Set buddy status to online */
 					purple_prpl_got_user_status(account, bstate->name, PLAIN_STATUS_OFFLINE, NULL);
@@ -287,7 +287,7 @@ void ping_buddies( PurpleConnection *gc, time_t now)
 		bstate->state_next = state_next;
 
 		/* Get next time we need to do something here */
-		if( state_next < time_next ) {
+		if(state_next < time_next) {
 			time_next = state_next;
 		}
 
@@ -296,7 +296,7 @@ next:
 	}
 
 	pstate->time_next = time_next;
-	purple_debug_info("plainprpl", "Next iteration in %d seconds.\n", (int) (time_next - now));
+	purple_debug_info("plainprpl", "Next iteration in %d seconds.\n", (int)(time_next - now));
 }
 
 static gboolean plain_receive(gpointer data)
@@ -311,27 +311,27 @@ static gboolean plain_receive(gpointer data)
 	PurpleAccount *account;
 	PurpleBuddy *buddy;
 	plain_plugin_state *pstate;
-	plain_buddy_state* bstate;
+	plain_buddy_state *bstate;
 
 	/* Get time in seconds since 1970 */
 	time_t now = time(NULL);
 
-	gc = (PurpleConnection*) data;
+	gc = (PurpleConnection *) data;
 	account = purple_connection_get_account(gc);
 	pstate = purple_connection_get_protocol_data(gc);
 
 	/* Check if we need to ping any buddy */
-	ping_buddies( gc, now );
+	ping_buddies(gc, now);
 
 	msgbuf_len = sizeof(msgbuf);
 	buddy = receive_msg(pstate, &addr, msgbuf, &msgbuf_len);
 
 	/* Nothing to receive or error */
-	if( msgbuf_len <= 0) {
+	if(msgbuf_len <= 0) {
 		return TRUE;
 	}
 
-	addr_str = str_addr( &addr, addrbuf );
+	addr_str = str_addr(&addr, addrbuf);
 
 	if(!g_utf8_validate(msgbuf, -1, NULL)) {
 		purple_debug_info("plainprpl", "Received invalid UTF8 message from %s - ignore.\n", addr_str);
@@ -366,7 +366,7 @@ static gboolean plain_receive(gpointer data)
 		/* Received a ping from a buddy */
 		if((bstate->time_recv + 5) < now) {
 			/* Send pong at most every 5 seconds */
-			send_msg( pstate, bstate, "/pong" );
+			send_msg(pstate, bstate, "/pong");
 		} else {
 			/* Ignore ping */
 		}
@@ -420,7 +420,7 @@ static char *plainprpl_status_text(PurpleBuddy *buddy)
 		status_name = purple_status_get_name(status);
 		message = purple_status_get_attr_string(status, "message");
 
-		if (message && strlen(message) > 0) {
+		if(message && strlen(message) > 0) {
 			status_text = g_strdup_printf("%s: %s", status_name, message);
 		} else {
 			status_text = g_strdup(status_name);
@@ -464,7 +464,7 @@ static void plainprpl_change_address_ok(void *ptr, PurpleRequestFields *fields)
 	pstate = purple_connection_get_protocol_data(buddy->account->gc);
 
 	field = purple_request_fields_get_field(fields, "addr_str");
-	const char* addr_str = purple_request_field_string_get_value(field);
+	const char *addr_str = purple_request_field_string_get_value(field);
 
 	purple_blist_node_set_string(PURPLE_BLIST_NODE(buddy), "addr_str", addr_str);
 	//resolve address again
@@ -487,8 +487,8 @@ static void plainprpl_change_address(PurpleBlistNode *node, gpointer userdata)
 	PurpleBuddy *buddy;
 	plain_buddy_state *bstate;
 
-	char* request_str;
-	const char* addr_str;
+	char *request_str;
+	const char *addr_str;
 
 	PurpleRequestFields *fields;
 	PurpleRequestFieldGroup *group;
@@ -498,7 +498,7 @@ static void plainprpl_change_address(PurpleBlistNode *node, gpointer userdata)
 	group = purple_request_field_group_new(NULL);
 	purple_request_fields_add_group(fields, group);
 
-	buddy = (PurpleBuddy*) node;
+	buddy = (PurpleBuddy *) node;
 	bstate = purple_buddy_get_protocol_data(buddy);
 
 	if(bstate) {
@@ -513,7 +513,7 @@ static void plainprpl_change_address(PurpleBlistNode *node, gpointer userdata)
 							  NULL, fields,
 							  _("OK"), G_CALLBACK(plainprpl_change_address_ok),
 							  _("Cancel"), G_CALLBACK(plainprpl_change_address_cancel),
-							  NULL, NULL, NULL, (void*) buddy
+							  NULL, NULL, NULL, (void *) buddy
 							 );
 		g_free(request_str);
 	} else {
@@ -545,28 +545,28 @@ static void plainprpl_login(PurpleAccount *account)
 	purple_connection_set_state(gc, PURPLE_CONNECTED);
 
 	/* Setup plugin data */
-	plain_plugin_state* pstate = g_new0(plain_plugin_state, 1);
+	plain_plugin_state *pstate = g_new0(plain_plugin_state, 1);
 
 	/* General account data */
 	const char *listen_af = purple_account_get_string(account, "listen_af", NULL);
 	const char *listen_port = purple_account_get_string(account, "listen_port", NULL);
 
 	//check port
-	if( listen_port == NULL || atoi(listen_port) < 1 || atoi(listen_port) >= 65535 ) {
+	if(listen_port == NULL || atoi(listen_port) < 1 || atoi(listen_port) >= 65535) {
 		listen_port = PLAIN_DEFAULT_PORT_STR;
 		purple_account_set_string(account, "listen_port", listen_port);
 	}
 
 	//check protocol
-	if( listen_af == NULL || (strcmp(listen_af, "ipv4") && strcmp(listen_af, "ipv6"))) {
+	if(listen_af == NULL || (strcmp(listen_af, "ipv4") && strcmp(listen_af, "ipv6"))) {
 		listen_af = "ipv4";
 		purple_account_set_string(account, "listen_port", listen_af);
 	}
 
 	/* Select the address to listen on */
-	const char* listen_addr = (strcmp(listen_af, "ipv4") == 0) ? "0.0.0.0" : "::1";
+	const char *listen_addr = (strcmp(listen_af, "ipv4") == 0) ? "0.0.0.0" : "::1";
 	pstate->sockaf = str_to_af(listen_af);
-	pstate->sockfd = net_bind("plainprpl", listen_addr, listen_port, NULL, IPPROTO_UDP, pstate->sockaf );
+	pstate->sockfd = net_bind("plainprpl", listen_addr, listen_port, NULL, IPPROTO_UDP, pstate->sockaf);
 
 	if(pstate->sockfd < 0) {
 		purple_debug_info("plainprpl", "Failed to bind to %s\n", listen_addr);
@@ -591,8 +591,8 @@ static void plainprpl_login(PurpleAccount *account)
 		//purple_debug_info("plainprpl", "#plainprpl_login: attach custom data to buddy: %s\n", buddy->name);
 		assert(purple_buddy_get_protocol_data(buddy) == NULL);
 
-		const char* addr_str = purple_blist_node_get_string(PURPLE_BLIST_NODE(buddy), "addr_str");
-		if( addr_str != NULL && strlen(addr_str) ) {
+		const char *addr_str = purple_blist_node_get_string(PURPLE_BLIST_NODE(buddy), "addr_str");
+		if(addr_str != NULL && strlen(addr_str)) {
 			add_buddy_sdata(buddy, pstate);
 		} else {
 			purple_debug_info("plainprpl", "Empty address for buddy: %s\n", buddy->name);
@@ -606,7 +606,7 @@ static void plainprpl_login(PurpleAccount *account)
 	g_slist_free(list);
 
 	/* Call the on_login script - if it is set */
-	const char* on_login = purple_account_get_string(account, "on_login", NULL);
+	const char *on_login = purple_account_get_string(account, "on_login", NULL);
 	exec_process(on_login, NULL, NULL, gc, NULL);
 }
 
@@ -618,7 +618,7 @@ static void plainprpl_close(PurpleConnection *gc)
 	PurpleBuddy *buddy;
 	plain_plugin_state *pstate;
 	plain_buddy_state *bstate;
-	const char* on_logout;
+	const char *on_logout;
 
 	/* notify other plainprpl accounts */
 	account = purple_connection_get_account(gc);
@@ -635,7 +635,7 @@ static void plainprpl_close(PurpleConnection *gc)
 		PurpleStatusType *status_type = purple_status_get_type(status);
 		PurpleStatusPrimitive status_primitive = purple_status_type_get_primitive(status_type);
 		if(bstate && status_primitive == PURPLE_STATUS_AVAILABLE) {
-			send_msg( pstate, bstate, "/bye" );
+			send_msg(pstate, bstate, "/bye");
 		}
 
 		iter = iter->next;
@@ -678,24 +678,24 @@ static int plainprpl_send_im(PurpleConnection *gc, const char *who, const char *
 	*/
 
 	buddy = purple_find_buddy(gc->account, who);
-	if( buddy == NULL ) {
+	if(buddy == NULL) {
 		return -999;
 	}
 
 	bstate = purple_buddy_get_protocol_data(buddy);
-	if( bstate == NULL ) {
+	if(bstate == NULL) {
 		return -999;
 	}
 
 	pstate = purple_connection_get_protocol_data(gc);
-	if( send_msg(pstate, bstate, msg) < 0 ) {
+	if(send_msg(pstate, bstate, msg) < 0) {
 		return -999;
 	}
 
 	return 1;
 }
 
-const char *str_time( time_t ago, char buf[])
+const char *str_time(time_t ago, char buf[])
 {
 	int diff;
 	const char *fmt;
@@ -718,12 +718,12 @@ const char *str_time( time_t ago, char buf[])
 		fmt = (diff == 1) ? "%d year ago" : "%d years ago";
 
 		//20 years ago..
-		if( diff > 20 ) {
+		if(diff > 20) {
 			fmt = "Never";
 		}
 	}
 
-	sprintf(buf, fmt, diff );
+	sprintf(buf, fmt, diff);
 	return buf;
 }
 
@@ -734,7 +734,7 @@ static void plainprpl_get_info(PurpleConnection *gc, const char *buddy_name)
 	PurpleNotifyUserInfo *info;
 	char addrbuf[FULL_ADDSTRLEN+1];
 	char timebuf[64];
-	const char* addr_str;
+	const char *addr_str;
 
 	buddy = purple_find_buddy(gc->account, buddy_name);
 	bstate = purple_buddy_get_protocol_data(buddy);
@@ -753,9 +753,9 @@ static void plainprpl_get_info(PurpleConnection *gc, const char *buddy_name)
 			/* The IP address has not been resolved yet */
 			purple_notify_user_info_add_pair(info, "Resolved", "Unknown");
 		} else {
-			purple_notify_user_info_add_pair(info, "Resolved", str_addr( &bstate->addr, addrbuf ));
+			purple_notify_user_info_add_pair(info, "Resolved", str_addr(&bstate->addr, addrbuf));
 		}
-		purple_notify_user_info_add_pair(info, "Last Seen", str_time( bstate->time_recv, timebuf ) );
+		purple_notify_user_info_add_pair(info, "Last Seen", str_time(bstate->time_recv, timebuf));
 	} else {
 		purple_notify_user_info_add_pair(info, "Info", "Missing Data");
 	}
@@ -770,7 +770,7 @@ static void plainprpl_add_buddy_ok(void *ptr, PurpleRequestFields *fields)
 	PurpleConnection *gc;
 	plain_plugin_state *pstate;
 	plain_buddy_state *bstate;
-	const char* addr_str;
+	const char *addr_str;
 	//const char* invite_msg;
 
 	purple_debug_info("plainprpl", "plainprpl_add_buddy_ok\n");
@@ -781,7 +781,7 @@ static void plainprpl_add_buddy_ok(void *ptr, PurpleRequestFields *fields)
 	addr_str = purple_request_fields_get_string(fields, "addr_str");
 	//invite_msg = purple_request_fields_get_string(fields, "invite_msg");
 
-	if( addr_str == NULL || strlen(addr_str) == 0 ) {
+	if(addr_str == NULL || strlen(addr_str) == 0) {
 		purple_notify_error(ptr, "Invalid Address", _("The address was empty."), _("You need to enter a host name or an IP address."));
 		purple_blist_remove_buddy(buddy);
 	} else {
@@ -811,18 +811,18 @@ static void plainprpl_add_buddy_cancel(void *ptr, PurpleRequestFields *fields)
 /* Add buddy dialog */
 static void plainprpl_add_buddy_with_invite(PurpleConnection *gc, PurpleBuddy *buddy, PurpleGroup *buddy_group, const char *msg)
 {
-	purple_debug_info( "plainprpl", "plainprpl_add_buddy_with_invite: %s (msg: '%s')\n", buddy->name, msg );
+	purple_debug_info("plainprpl", "plainprpl_add_buddy_with_invite: %s (msg: '%s')\n", buddy->name, msg);
 	PurpleRequestFields *request;
 	PurpleRequestFieldGroup *group;
 	PurpleRequestField *field;
 
 	group = purple_request_field_group_new(NULL);
 
-	field = purple_request_field_string_new( "addr_str", _("IP Address"), "", FALSE );
-	purple_request_field_group_add_field( group, field );
+	field = purple_request_field_string_new("addr_str", _("IP Address"), "", FALSE);
+	purple_request_field_group_add_field(group, field);
 
-	field = purple_request_field_string_new( "invite_msg", _("Invite Message"), "Please allow me to add you as a contact!", FALSE );
-	purple_request_field_group_add_field( group, field );
+	field = purple_request_field_string_new("invite_msg", _("Invite Message"), "Please allow me to add you as a contact!", FALSE);
+	purple_request_field_group_add_field(group, field);
 
 	request = purple_request_fields_new();
 	purple_request_fields_add_group(request, group);
@@ -831,7 +831,7 @@ static void plainprpl_add_buddy_with_invite(PurpleConnection *gc, PurpleBuddy *b
 						  NULL, request,
 						  "OK",  G_CALLBACK(plainprpl_add_buddy_ok),
 						  "Cancel",  G_CALLBACK(plainprpl_add_buddy_cancel),
-						  NULL, NULL, NULL, (void*) buddy
+						  NULL, NULL, NULL, (void *) buddy
 						 );
 
 	purple_prpl_got_user_status(gc->account, buddy->name, PLAIN_STATUS_OFFLINE, NULL);
@@ -843,7 +843,7 @@ static void plainprpl_add_buddy_by_contact_request_ok(void *ptr, PurpleRequestFi
 	PurpleAccount *account = buddy->account;
 	plain_plugin_state *pstate;
 	plain_buddy_state *bstate;
-	char* addr_str;
+	char *addr_str;
 	const char *name;
 	IP addr;
 
@@ -862,8 +862,8 @@ static void plainprpl_add_buddy_by_contact_request_ok(void *ptr, PurpleRequestFi
 		pstate = purple_connection_get_protocol_data(buddy->account->gc);
 		bstate = add_buddy_sdata(buddy, pstate);
 
-		assert(addr_parse_full(&addr, addr_str, PLAIN_DEFAULT_PORT_STR, pstate->sockaf ) == 0);
-		addr_parse_full(&addr, addr_str, PLAIN_DEFAULT_PORT_STR, pstate->sockaf );
+		assert(addr_parse_full(&addr, addr_str, PLAIN_DEFAULT_PORT_STR, pstate->sockaf) == 0);
+		addr_parse_full(&addr, addr_str, PLAIN_DEFAULT_PORT_STR, pstate->sockaf);
 		memcpy(&bstate->addr, &addr, sizeof(IP));
 
 		purple_prpl_got_user_status(account, buddy->name, PLAIN_STATUS_ONLINE, NULL);
@@ -886,7 +886,7 @@ static void plainprpl_add_buddy_by_contact_request_cancel(void *ptr, PurpleReque
 //with invite message
 static void plainprpl_add_buddy_by_contact_request(PurpleConnection *gc, const char *addr_str, const char *message)
 {
-	PurpleBuddy* buddy;
+	PurpleBuddy *buddy;
 
 	/* Create the basic buddy item */
 	buddy = purple_buddy_new(gc->account, addr_str, NULL);
@@ -898,8 +898,8 @@ static void plainprpl_add_buddy_by_contact_request(PurpleConnection *gc, const c
 
 	group = purple_request_field_group_new(NULL);
 
-	field = purple_request_field_string_new( "name", _("Name"), addr_str, FALSE );
-	purple_request_field_group_add_field( group, field );
+	field = purple_request_field_string_new("name", _("Name"), addr_str, FALSE);
+	purple_request_field_group_add_field(group, field);
 
 	request = purple_request_fields_new();
 	purple_request_fields_add_group(request, group);
@@ -909,7 +909,7 @@ static void plainprpl_add_buddy_by_contact_request(PurpleConnection *gc, const c
 						  NULL, request,
 						  "OK",  G_CALLBACK(plainprpl_add_buddy_by_contact_request_ok),
 						  "Cancel",  G_CALLBACK(plainprpl_add_buddy_by_contact_request_cancel),
-						  NULL, NULL, NULL, (void*) buddy
+						  NULL, NULL, NULL, (void *) buddy
 						 );
 	g_free(msg);
 
@@ -1041,28 +1041,28 @@ static void plainprpl_init(PurplePlugin *plugin)
 	kvp->value = g_strdup("ipv6");
 	list = g_list_append(list, kvp);
 
-	option = purple_account_option_list_new( _("Protocol"), "listen_af", list);
+	option = purple_account_option_list_new(_("Protocol"), "listen_af", list);
 	prpl_info.protocol_options = g_list_append(prpl_info.protocol_options, option);
 
-	option = purple_account_option_string_new( _("Port"), "listen_port", PLAIN_DEFAULT_PORT_STR);
+	option = purple_account_option_string_new(_("Port"), "listen_port", PLAIN_DEFAULT_PORT_STR);
 	prpl_info.protocol_options = g_list_append(prpl_info.protocol_options, option);
 
-	option = purple_account_option_bool_new( _("Allow messages from unknown contacts."), "allow_unknown", FALSE);
+	option = purple_account_option_bool_new(_("Allow messages from unknown contacts."), "allow_unknown", FALSE);
 	prpl_info.protocol_options = g_list_append(prpl_info.protocol_options, option);
 
-	option = purple_account_option_string_new( _("On Login"), "on_login","");
+	option = purple_account_option_string_new(_("On Login"), "on_login","");
 	prpl_info.protocol_options = g_list_append(prpl_info.protocol_options, option);
 
-	option = purple_account_option_string_new( _("On Logout"), "on_logout","");
+	option = purple_account_option_string_new(_("On Logout"), "on_logout","");
 	prpl_info.protocol_options = g_list_append(prpl_info.protocol_options, option);
 
 	/* To lookup an IP address */
-	option = purple_account_option_string_new( _("On Resolve"), "on_lookup", "");
+	option = purple_account_option_string_new(_("On Resolve"), "on_lookup", "");
 	prpl_info.protocol_options = g_list_append(prpl_info.protocol_options, option);
 
 #if 0
 	/* When verification fails */
-	option = purple_account_option_string_new( _("On Invalid"), "on_invalid", "");
+	option = purple_account_option_string_new(_("On Invalid"), "on_invalid", "");
 	prpl_info.protocol_options = g_list_append(prpl_info.protocol_options, option);
 #endif
 }
@@ -1076,7 +1076,7 @@ static PurplePluginInfo info = {
 	0, /* flags */
 	NULL, /* dependencies */
 	PURPLE_PRIORITY_DEFAULT, /* priority */
-	LINKPRPL_ID, /* id */
+	PLAINPRPL_ID, /* id */
 	"Plain", /* name */
 	PLAIN_VERSION, /* version */
 	"Plain Protocol Plugin", /* summary */
