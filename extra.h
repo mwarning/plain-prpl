@@ -17,6 +17,8 @@ typedef unsigned int UINT;
 typedef unsigned char UCHAR;
 
 
+int otr_set_max_message_size( const char protocol_id[], unsigned int max_message_size );
+
 int addr_equal(const IP *addr1, const IP *addr2);
 
 int str_to_af(const char *str);

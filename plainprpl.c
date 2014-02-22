@@ -1070,7 +1070,7 @@ static void plainprpl_init(PurplePlugin *plugin)
 	* Workaround to tell the OTR plugin our maximum message size.
 	* There is not other way for current libpurple 2.x.
 	*/
-	otr_set_max_message_size();
+	otr_set_max_message_size( PLAINPRPL_ID, MAX_MESSAGE_SIZE );
 }
 
 static PurplePluginInfo info = {

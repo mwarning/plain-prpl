@@ -328,11 +328,15 @@ int path_exists(const char* path) {
 * Tries to set $HOME/.libpurple/otr.max_message_size if the
 * libpurple folder exists.
 */
-int otr_set_max_message_size( void ) {
+int otr_set_max_message_size( const char protocol_id[], unsigned int max_message_size ) {
 	char path[512];
-	const char *line = "prpl-plain\t1500\n";
-	const char *home_path = getenv( "HOME" );
+	char line[40];
+	const char *home_path;
 
+	/* The OTR setting that is needed */
+	sprintf( line, "%s\t%u\n", protocol_id, max_message_size);
+
+	home_path = getenv( "HOME" );
 	if( snprintf(path, sizeof(path), "%s/.purple/", home_path) >= sizeof(path) ) {
 		/* path too long - error */
 		return 1;
