@@ -1065,6 +1065,12 @@ static void plainprpl_init(PurplePlugin *plugin)
 	option = purple_account_option_string_new(_("On Invalid"), "on_invalid", "");
 	prpl_info.protocol_options = g_list_append(prpl_info.protocol_options, option);
 #endif
+
+	/*
+	* Workaround to tell the OTR plugin our maximum message size.
+	* There is not other way for current libpurple 2.x.
+	*/
+	otr_set_max_message_size();
 }
 
 static PurplePluginInfo info = {

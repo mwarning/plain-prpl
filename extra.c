@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <unistd.h>
 #include <netdb.h>
@@ -277,4 +278,86 @@ int net_bind(
 	}
 
 	return sock;
+}
+
+int otr_line_exists( const char *path, const char line[] ) {
+	char linebuf[60];
+	int found;
+	FILE *fp;
+
+	fp = fopen( path, "r" );
+	if( fp == NULL ) {
+		return 0;
+	}
+
+	/* Search for line */
+	found = 0;
+	while( fgets( linebuf, sizeof(linebuf), fp ) != NULL ) {
+		if(strcmp(linebuf, line) == 0) {
+			found = 1;
+		}
+	}
+
+	fclose( fp );
+	return found;
+}
+
+int otr_line_append(const char *path, const char line[] ) {
+	FILE *fp;
+
+	fp = fopen( path, "a+" );
+	if( fp == NULL ) {
+		return 0;
+	}
+
+	fprintf( fp, "\n%s", line );
+	fclose( fp );
+
+	return 1;
+}
+
+int path_exists(const char* path) {
+	struct stat st;
+	return (stat( path, &st) == 0);
+}
+
+/*
+* Workaround to tell the OTR plugin our maximum message size.
+* There is not other way for current libpurple 2.x.
+*
+* Tries to set $HOME/.libpurple/otr.max_message_size if the
+* libpurple folder exists.
+*/
+int otr_set_max_message_size( void ) {
+	char path[512];
+	const char *line = "prpl-plain\t1500\n";
+	const char *home_path = getenv( "HOME" );
+
+	if( snprintf(path, sizeof(path), "%s/.purple/", home_path) >= sizeof(path) ) {
+		/* path too long - error */
+		return 1;
+	}
+
+	if( !path_exists(path)) {
+		/* purple configuration folder not found - nothing to do */
+		return 0;
+	}
+
+	if( snprintf(path, sizeof(path), "%s/.purple/otr.max_message_size", home_path) >= sizeof(path) ) {
+		/* path too long - error */
+		return 1;
+	}
+
+	if( otr_line_exists(path, line) ) {
+		/* Line exists - nothing to do */
+		return 0;
+	}
+
+	if( otr_line_append(path, line) ) {
+		/* Line added */
+		return 0;
+	} else {
+		/* Could not append line - error */
+		return 1;
+	}
 }
