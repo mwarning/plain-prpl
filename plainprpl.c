@@ -809,9 +809,9 @@ static void plainprpl_add_buddy_cancel(void *ptr, PurpleRequestFields *fields)
 }
 
 /* Add buddy dialog */
-static void plainprpl_add_buddy_with_invite(PurpleConnection *gc, PurpleBuddy *buddy, PurpleGroup *buddy_group, const char *msg)
+static void plainprpl_add_buddy(PurpleConnection *gc, PurpleBuddy *buddy, PurpleGroup *buddy_group)
 {
-	purple_debug_info("plainprpl", "plainprpl_add_buddy_with_invite: %s (msg: '%s')\n", buddy->name, msg);
+	purple_debug_info("plainprpl", "plainprpl_add_buddy_with_invite: %s\n", buddy->name);
 	PurpleRequestFields *request;
 	PurpleRequestFieldGroup *group;
 	PurpleRequestField *field;
@@ -945,6 +945,10 @@ static gboolean plainprpl_can_receive_file(PurpleConnection *gc, const char *who
 	return FALSE;
 }
 
+static gssize get_max_message_size(PurpleConversation *conv) {
+	return MAX_MESSAGE_SIZE;
+}
+
 /*
 * prpl stuff. see prpl.h for more information.
 */
@@ -970,7 +974,7 @@ static PurplePluginProtocolInfo prpl_info = {
 	NULL, /* set_status */
 	NULL, /* set_idle */
 	NULL, /* change_passwd */
-	NULL, /* add_buddy */
+	plainprpl_add_buddy, /* add_buddy */
 	NULL, /* add_buddies */
 	NULL, /* remove_buddy */
 	NULL, /* remove_buddies */
@@ -1021,8 +1025,12 @@ static PurplePluginProtocolInfo prpl_info = {
 	NULL, /* get_moods */
 	NULL, /* set_public_alias */
 	NULL, /* get_public_alias */
-	plainprpl_add_buddy_with_invite, /* add_buddy_with_invite */
+#if PURPLE_MAJOR_VERSION == 2
+	NULL, /* add_buddy_with_invite */
 	NULL /* add_buddies_with_invite */
+#else
+	get_max_message_size
+#endif
 };
 
 static void plainprpl_init(PurplePlugin *plugin)
@@ -1066,11 +1074,13 @@ static void plainprpl_init(PurplePlugin *plugin)
 	prpl_info.protocol_options = g_list_append(prpl_info.protocol_options, option);
 #endif
 
+#if PURPLE_MAJOR_VERSION == 2
 	/*
 	* Workaround to tell the OTR plugin our maximum message size.
 	* There is not other way for current libpurple 2.x.
 	*/
 	otr_set_max_message_size( PLAINPRPL_ID, MAX_MESSAGE_SIZE );
+#endif
 }
 
 static PurplePluginInfo info = {
