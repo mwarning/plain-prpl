@@ -14,6 +14,8 @@
 #include <net/if.h>
 #include <arpa/inet.h>
 
+#include "util.h" // for purple_home_dir()
+
 #include "extra.h"
 
 
@@ -336,7 +338,7 @@ int otr_set_max_message_size( const char protocol_id[], unsigned int max_message
 	/* The OTR setting that is needed */
 	sprintf( line, "%s\t%u\n", protocol_id, max_message_size);
 
-	home_path = getenv( "HOME" );
+	home_path = purple_home_dir(); //advised instead of getenv( "HOME" );
 	if( snprintf(path, sizeof(path), "%s/.purple/", home_path) >= sizeof(path) ) {
 		/* path too long - error */
 		return 1;
