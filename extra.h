@@ -17,7 +17,7 @@ typedef unsigned int UINT;
 typedef unsigned char UCHAR;
 
 
-int otr_set_max_message_size( const char protocol_id[], unsigned int max_message_size );
+int otr_set_max_message_size(const char protocol_id[], unsigned int max_message_size);
 
 int addr_equal(const IP *addr1, const IP *addr2);
 
@@ -26,13 +26,13 @@ const char *af_to_str(int af);
 
 int addr_parse(IP *addr, const char *addr_str, const char *port_str, int af);
 int addr_parse_full(IP *addr, const char *full_addr_str, const char *default_port, int af);
-char *str_addr(const IP *addr, char *addrbuf);
+char *str_addr(const IP *addr);
 
 int net_bind(
-	const char *name,
-	const char *addr,
-	const char *port,
-	const char *ifce,
+	const char name[],
+	const char addr[],
+	const char port[],
+	const char ifce[],
 	int protocol, int af
 );
 
