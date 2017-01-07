@@ -24,6 +24,7 @@ int addr_equal(const IP *addr1, const IP *addr2);
 int str_to_af(const char *str);
 const char *af_to_str(int af);
 
+int addr_parse(IP *addr, const char *addr_str, const char *port_str, int af);
 int addr_parse_full(IP *addr, const char *full_addr_str, const char *default_port, int af);
 char *str_addr(const IP *addr, char *addrbuf);
 

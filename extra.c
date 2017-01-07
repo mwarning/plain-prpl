@@ -13,6 +13,7 @@
 #include <netdb.h>
 #include <net/if.h>
 #include <arpa/inet.h>
+#include <sys/stat.h>
 
 #include "util.h" // for purple_home_dir()
 
